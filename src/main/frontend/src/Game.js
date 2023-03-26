@@ -54,10 +54,17 @@ function Game() {
   const guessesLeft = game.maxGuesses - game.guesses.length;
   const placeholders = [...Array(guessesLeft).keys()].map((gpIdx) => (
     <div key={`guess-placeholder-${gpIdx}`}>
-      {/* TODO: Turn this single char placeholder to 5 placeholders */}
-      <span key={`guess-placeholder-${gpIdx}-1`} className="Wordle-Match">
-        &nbsp;
-      </span>
+      {/* TODO: Extract the code between start and end to component ant replace it with this: <Guess /> */}
+      {/* --- start --- */}
+      {[1, 2, 3, 4, 5].map((cpIdx) => (
+        <span
+          key={`guess-placeholder-${gpIdx}-${cpIdx}`}
+          className="Wordle-Match"
+        >
+          &nbsp;
+        </span>
+      ))}
+      {/* --- end --- */}
     </div>
   ));
 
@@ -81,6 +88,8 @@ function Game() {
         <div>
           {game.guesses.map((guess) => (
             <div key={`guess-${guess.id}`}>
+              {/* TODO: Extract the code between start and end to component ant replace it with this: <Guess guess={guess} /> */}
+              {/* --- start --- */}
               {[...guess.word].map((char, idx) => (
                 <span
                   key={`guess-${guess.id}-${idx}`}
@@ -92,6 +101,7 @@ function Game() {
                   {char}
                 </span>
               ))}
+              {/* --- end --- */}
             </div>
           ))}
           {placeholders}
