@@ -1,6 +1,5 @@
 package pu.fmi.wordle.model;
 
-import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -8,6 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.random.RandomGenerator;
+import javax.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,10 +17,8 @@ public class WordRepoFile implements WordRepo {
 
   @PostConstruct
   public void popuplateWordsFromFile() {
-    var in =
-        Thread.currentThread()
-            .getContextClassLoader()
-            .getResourceAsStream("wordle-bg-words-list.csv");
+    var in = Thread.currentThread().getContextClassLoader()
+        .getResourceAsStream("wordle-bg-words-list.csv");
     var reader = new InputStreamReader(in, StandardCharsets.UTF_8);
     var lineReader = new BufferedReader(reader);
     lineReader.lines().forEach(words::add);

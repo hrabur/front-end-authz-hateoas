@@ -1,12 +1,12 @@
 package pu.fmi.wordle.logic;
 
-import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pu.fmi.wordle.model.Game;
 import pu.fmi.wordle.model.Game.GameState;
 import pu.fmi.wordle.model.GameRepository;

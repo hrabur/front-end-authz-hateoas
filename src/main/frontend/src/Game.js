@@ -2,6 +2,16 @@ import classNames from "classnames";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import "./Game.css";
+import Guess from "./Guess";
+
+function useWindowListener(eventType, listener) {
+  useEffect(() => {
+    window.addEventListener(eventType, listener);
+    return () => {
+      window.removeEventListener(eventType, listener);
+    };
+  }, [eventType, listener]);
+}
 
 function Game() {
   let { gameId } = useParams();
@@ -9,7 +19,7 @@ function Game() {
     word: "",
     alphabet: "",
     state: "ONGOING",
-    maxGuesses: 0,
+    maxGuesses: 5,
     guesses: [],
   });
 
@@ -26,17 +36,11 @@ function Game() {
   const [word, setWord] = useState("");
   const [error, setError] = useState();
 
-  function handleChange(e) {
-    setWord(e.target.value);
-  }
-
-  async function makeGuess(e) {
-    e.preventDefault();
-
-    const form = e.target;
-    const formData = new FormData(form);
+  async function makeGuess() {
+    const formData = new FormData();
+    formData.append("guess", word);
     const response = await fetch(`/api/games/${gameId}/guesses`, {
-      method: form.method,
+      method: "POST",
       body: formData,
     });
 
@@ -51,22 +55,30 @@ function Game() {
     setWord("");
   }
 
+  function handleKeyPress({ key }) {
+    if (word.length < 5 && game.alphabet.includes(key)) {
+      setWord((old) => old + key);
+    } else if (word.length > 0 && key === "Backspace") {
+      setWord((old) => old.slice(0, -1));
+    } else if (word.length === 5 && key === "Enter") {
+      makeGuess();
+    }
+  }
+
+  useWindowListener("keydown", handleKeyPress);
+
   const guessesLeft = game.maxGuesses - game.guesses.length;
-  const placeholders = [...Array(guessesLeft).keys()].map((gpIdx) => (
-    <div key={`guess-placeholder-${gpIdx}`}>
-      {/* TODO: Extract the code between start and end to component ant replace it with this: <Guess /> */}
-      {/* --- start --- */}
-      {[1, 2, 3, 4, 5].map((cpIdx) => (
-        <span
-          key={`guess-placeholder-${gpIdx}-${cpIdx}`}
-          className="Wordle-Match"
-        >
-          &nbsp;
-        </span>
-      ))}
-      {/* --- end --- */}
-    </div>
-  ));
+  const placeholders =
+    guessesLeft > 0
+      ? [
+          <Guess id={-1} word={word} />,
+          ...[...Array(guessesLeft - 1).keys()].map((gpIdx) => (
+            <div key={`guess-placeholder-${gpIdx}`}>
+              <Guess id="gpIdx" />
+            </div>
+          )),
+        ]
+      : [];
 
   return (
     <div className="Wordle">
@@ -88,57 +100,40 @@ function Game() {
         <div>
           {game.guesses.map((guess) => (
             <div key={`guess-${guess.id}`}>
-              {/* TODO: Extract the code between start and end to component ant replace it with this: <Guess guess={guess} /> */}
-              {/* --- start --- */}
-              {[...guess.word].map((char, idx) => (
-                <span
-                  key={`guess-${guess.id}-${idx}`}
-                  className={classNames(
-                    "Wordle-Match",
-                    `Wordle-Match_${guess.matches.charAt(idx)}`
-                  )}
-                >
-                  {char}
-                </span>
-              ))}
-              {/* --- end --- */}
+              <Guess {...guess} />
             </div>
           ))}
           {placeholders}
         </div>
-        {game.state === "ONGOING" && (
-          <>
-            <div>
-              <input
-                name="guess"
-                maxlength="5"
-                autofocus
-                value={word}
-                onChange={handleChange}
-              />{" "}
-              <button>Check</button>
-            </div>
-            {error?.code === "unknown-word" && (
-              <p className="Wordle-Error">
-                В речника няма дума "{error.value}"
-              </p>
-            )}
-          </>
+        {game.state === "ONGOING" && error?.code === "unknown-word" && (
+          <p className="Wordle-Error">В речника няма дума "{error.value}"</p>
         )}
       </form>
       <div>
-        <h3>Статистика за използваните букви:</h3>
-        <div className="Wordle-LettersStat">
+        <div className="Wordle-Keyboard">
           {[...game.alphabet].map((char, idx) => (
-            <span
+            <button
               className={classNames(
-                "Wordle-Match",
+                "Wordle-Key",
                 `Wordle-Match_${game.alphabetMatches.charAt(idx)}`
               )}
+              onClick={() => handleKeyPress({ key: char })}
             >
               {char}
-            </span>
+            </button>
           ))}
+          <button
+            className="Wordle-Key Wordle-Backspace"
+            onClick={() => handleKeyPress({ key: "Backspace" })}
+          >
+            ⌫
+          </button>
+          <button
+            className="Wordle-Key Wordle-Enter"
+            onClick={() => handleKeyPress({ key: "Enter" })}
+          >
+            ↵
+          </button>
         </div>
       </div>
     </div>

@@ -1,21 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Button, Nav, Table } from "react-bootstrap";
 import { FormattedDate } from "react-intl";
 import Skeleton from "react-loading-skeleton";
 import { useNavigate } from "react-router-dom";
+import useSWR, { mutate } from "swr";
 import "./App.css";
+import { Can } from "./Can";
+import ConfigPopup from "./ConfigPopup";
+import LoginPopup from "./LoginPopup";
 
 function App() {
-  const [last10, setLast10] = useState();
+  const [filter, setFilter] = useState("top10");
+  const { data: last10Model } = useSWR(`/api/games?filter=${filter}`);
+  const last10 = last10Model?._embedded.gameModelList;
 
-  useEffect(() => {
-    const fetchLast10 = async () => {
-      const response = await fetch("/api/games/last10");
-      const last10 = await response.json();
-      setLast10(last10);
-    };
+  const { data: user } = useSWR("/api/users/current");
 
-    fetchLast10();
-  }, []);
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
 
   const navigate = useNavigate();
 
@@ -25,14 +27,54 @@ function App() {
     navigate(`/games/${game.id}`);
   }
 
+  async function signOut() {
+    await fetch("/logout");
+    mutate("/api/users/current");
+  }
+
   return (
     <div className="Index">
-      <h1>Welcom to Wordle 2023</h1>
-      <button onClick={startNewGame}>Start New Game</button>
+      <h1>Welcom {user ? user.name : "to Wordle 2023"}</h1>
+      <div className="d-flex justify-content-center gap-2">
+        <Button onClick={startNewGame}>Start New Game</Button>
+
+        <Can I="read" a="config">
+          <Button onClick={() => setShowConfig(true)}>
+            <i class="bi bi-toggles"></i> Config
+          </Button>
+        </Can>
+        <ConfigPopup show={showConfig} onHide={() => setShowConfig(false)} />
+
+        {!user && (
+          <Button variant="outline-primary" onClick={() => setShowSignIn(true)}>
+            Login
+          </Button>
+        )}
+        <LoginPopup show={showSignIn} onHide={() => setShowSignIn(false)} />
+
+        {user && (
+          <Button variant="outline-primary" onClick={signOut}>
+            Logout
+          </Button>
+        )}
+      </div>
 
       <div>
-        <table className="Index-Last10">
-          <caption>Резултати от последните 10 игри</caption>
+        <Nav
+          variant="tabs"
+          activeKey={filter}
+          onSelect={(eventKey) => setFilter(eventKey)}
+        >
+          <Nav.Item>
+            <Nav.Link eventKey="top10">Top 10</Nav.Link>
+          </Nav.Item>
+          <Can I="query" a="game" field="myTop10">
+            <Nav.Item>
+              <Nav.Link eventKey="myTop10">My Top 10</Nav.Link>
+            </Nav.Item>
+          </Can>
+        </Nav>
+        <Table striped className="Index-Last10">
           <thead>
             <th>Дата</th>
             <th>Резултат</th>
@@ -72,7 +114,7 @@ function App() {
                   </tr>
                 ))}
           </tbody>
-        </table>
+        </Table>
       </div>
     </div>
   );
