@@ -1,12 +1,10 @@
 package pu.fmi.wordle.api;
 
-import java.util.Collection;
 import org.springframework.hateoas.RepresentationModel;
 
 public class UserModel extends RepresentationModel<UserModel> {
-  Long id;
-  String name;
-  Collection<String> permissions;
+  private Long id;
+  private String name;
 
   public Long getId() {
     return id;
@@ -22,13 +20,5 @@ public class UserModel extends RepresentationModel<UserModel> {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  public Collection<String> getPermissions() {
-    return permissions;
-  }
-
-  public void setPermissions(Collection<String> permissions) {
-    this.permissions = permissions;
   }
 }

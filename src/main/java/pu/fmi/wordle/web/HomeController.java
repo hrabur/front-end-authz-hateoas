@@ -40,7 +40,7 @@ public class HomeController {
 
   @ResponseBody
   @GetMapping("/logout")
-  public ResponseEntity<Void> login() {
+  public ResponseEntity<Void> logout() {
     SecurityUtils.getSubject().logout();
     return ResponseEntity.ok().build();
   }

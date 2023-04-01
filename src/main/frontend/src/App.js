@@ -5,55 +5,70 @@ import Skeleton from "react-loading-skeleton";
 import { useNavigate } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import "./App.css";
-import { Can } from "./Can";
 import ConfigPopup from "./ConfigPopup";
 import LoginPopup from "./LoginPopup";
 
 function App() {
   const [filter, setFilter] = useState("top10");
-  const { data: last10Model } = useSWR(`/api/games?filter=${filter}`);
-  const last10 = last10Model?._embedded.gameModelList;
-
   const { data: user } = useSWR("/api/users/current");
+  const { data: top10Model } = useSWR(user?._links[filter].href);
+  const top10 = top10Model?._embedded.gameModelList;
 
   const [showSignIn, setShowSignIn] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
 
   const navigate = useNavigate();
-
   async function startNewGame() {
     const response = await fetch("/api/games", { method: "POST" });
     const game = await response.json();
     navigate(`/games/${game.id}`);
   }
 
-  async function signOut() {
-    await fetch("/logout");
+  async function signOut(link) {
+    await fetch(link.href);
     mutate("/api/users/current");
   }
 
   return (
     <div className="Index">
-      <h1>Welcom {user ? user.name : "to Wordle 2023"}</h1>
+      <h1>Welcome {user?.id ? user.name : "to Wordle 2023"}</h1>
       <div className="d-flex justify-content-center gap-2">
         <Button onClick={startNewGame}>Start New Game</Button>
 
-        <Can I="read" a="config">
-          <Button onClick={() => setShowConfig(true)}>
-            <i class="bi bi-toggles"></i> Config
-          </Button>
-        </Can>
-        <ConfigPopup show={showConfig} onHide={() => setShowConfig(false)} />
-
-        {!user && (
-          <Button variant="outline-primary" onClick={() => setShowSignIn(true)}>
-            Login
-          </Button>
+        {user?._links.readConfig && (
+          <>
+            <Button onClick={() => setShowConfig(true)}>
+              <i class="bi bi-toggles"></i> Config
+            </Button>
+            <ConfigPopup
+              show={showConfig}
+              onHide={() => setShowConfig(false)}
+              link={user?._links.readConfig}
+            />
+          </>
         )}
-        <LoginPopup show={showSignIn} onHide={() => setShowSignIn(false)} />
 
-        {user && (
-          <Button variant="outline-primary" onClick={signOut}>
+        {user?._links.login && (
+          <>
+            <Button
+              variant="outline-primary"
+              onClick={() => setShowSignIn(true)}
+            >
+              Login
+            </Button>
+            <LoginPopup
+              show={showSignIn}
+              onHide={() => setShowSignIn(false)}
+              link={user?._links.login}
+            />
+          </>
+        )}
+
+        {user?._links.logout && (
+          <Button
+            variant="outline-primary"
+            onClick={() => signOut(user?._links.logout)}
+          >
             Logout
           </Button>
         )}
@@ -68,13 +83,13 @@ function App() {
           <Nav.Item>
             <Nav.Link eventKey="top10">Top 10</Nav.Link>
           </Nav.Item>
-          <Can I="query" a="game" field="myTop10">
+          {user?._links.myTop10 && (
             <Nav.Item>
               <Nav.Link eventKey="myTop10">My Top 10</Nav.Link>
             </Nav.Item>
-          </Can>
+          )}
         </Nav>
-        <Table striped className="Index-Last10">
+        <Table striped className="Index-top10">
           <thead>
             <th>Дата</th>
             <th>Резултат</th>
@@ -82,8 +97,8 @@ function App() {
             <th>Дума</th>
           </thead>
           <tbody>
-            {last10
-              ? last10.map((game) => (
+            {top10
+              ? top10.map((game) => (
                   <tr key={game.id}>
                     <td>
                       <FormattedDate
@@ -97,7 +112,7 @@ function App() {
                     <td>{game.word}</td>
                   </tr>
                 ))
-              : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((pos) => (
+              : [...Array(10).keys()].map((pos) => (
                   <tr key={pos}>
                     <td>
                       <Skeleton width="10rem" />

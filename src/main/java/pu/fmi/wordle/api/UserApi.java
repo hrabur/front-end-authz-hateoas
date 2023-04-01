@@ -30,15 +30,12 @@ public class UserApi {
   }
 
   @GetMapping("/current")
-  public ResponseEntity<UserModel> getCurrentUser() {
+  public UserModel getCurrentUser() {
     var username = (String) SecurityUtils.getSubject().getPrincipal();
     if (username == null)
-      return ResponseEntity.notFound().build();
+      return userModelAssembler.toAnonymousUserModel();
 
     var user = userService.getUserByUsername(username);
-    if (user == null)
-      return ResponseEntity.notFound().build();
-
-    return ResponseEntity.ok(userModelAssembler.toModel(user));
+    return userModelAssembler.toModel(user);
   }
 }

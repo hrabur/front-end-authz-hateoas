@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { mutate } from "swr";
 
-export default function LoginPopup({ show, onHide }) {
+export default function LoginPopup({ show, onHide, link }) {
   const [error, setError] = useState(false);
 
   async function handleSubmit(e) {
@@ -10,7 +10,7 @@ export default function LoginPopup({ show, onHide }) {
 
     const form = e.target;
     const formData = new FormData(form);
-    const response = await fetch("/login", {
+    const response = await fetch(link.href, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

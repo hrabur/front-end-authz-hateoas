@@ -1,4 +1,3 @@
-import { createMongoAbility } from "@casl/ability";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import React from "react";
@@ -6,9 +5,8 @@ import ReactDOM from "react-dom/client";
 import { IntlProvider } from "react-intl";
 import "react-loading-skeleton/dist/skeleton.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import useSWR, { SWRConfig } from "swr";
+import { SWRConfig } from "swr";
 import App from "./App";
-import { AbilityContext } from "./Can";
 import Game from "./Game";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
@@ -27,24 +25,6 @@ const router = createBrowserRouter([
     element: <Game />,
   },
 ]);
-
-function MyAbilityContext({ children }) {
-  const { data: user } = useSWR("/api/users/current");
-  const rawRules = user?.permissions
-    .map((permission) => permission.split(":"))
-    .map((parts) =>
-      parts.length === 2
-        ? { subject: parts[0], action: parts[1] }
-        : { subject: parts[0], action: parts[1], fields: parts[2] }
-    );
-  const ability = createMongoAbility(rawRules);
-
-  return (
-    <AbilityContext.Provider value={ability}>
-      {children}
-    </AbilityContext.Provider>
-  );
-}
 
 const fetcher = async (url) => {
   const res = await fetch(url);
@@ -72,9 +52,7 @@ root.render(
           fetcher,
         }}
       >
-        <MyAbilityContext>
-          <RouterProvider router={router} />
-        </MyAbilityContext>
+        <RouterProvider router={router} />
       </SWRConfig>
     </IntlProvider>
   </React.StrictMode>
