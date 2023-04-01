@@ -11,16 +11,14 @@ import LoginPopup from "./LoginPopup";
 
 function App() {
   const [filter, setFilter] = useState("top10");
-  const { data: last10Model } = useSWR(`/api/games?filter=${filter}`);
-  const last10 = last10Model?._embedded.gameModelList;
-
   const { data: user } = useSWR("/api/users/current");
+  const { data: top10Model } = useSWR(`/api/games?filter=${filter}`);
+  const top10 = top10Model?._embedded.gameModelList;
 
   const [showSignIn, setShowSignIn] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
 
   const navigate = useNavigate();
-
   async function startNewGame() {
     const response = await fetch("/api/games", { method: "POST" });
     const game = await response.json();
@@ -39,11 +37,16 @@ function App() {
         <Button onClick={startNewGame}>Start New Game</Button>
 
         <Can I="read" a="config">
-          <Button onClick={() => setShowConfig(true)}>
-            <i class="bi bi-toggles"></i> Config
-          </Button>
+          <>
+            <Button onClick={() => setShowConfig(true)}>
+              <i class="bi bi-toggles"></i> Config
+            </Button>
+            <ConfigPopup
+              show={showConfig}
+              onHide={() => setShowConfig(false)}
+            />
+          </>
         </Can>
-        <ConfigPopup show={showConfig} onHide={() => setShowConfig(false)} />
 
         {!user && (
           <Button variant="outline-primary" onClick={() => setShowSignIn(true)}>
@@ -82,8 +85,8 @@ function App() {
             <th>Дума</th>
           </thead>
           <tbody>
-            {last10
-              ? last10.map((game) => (
+            {top10
+              ? top10.map((game) => (
                   <tr key={game.id}>
                     <td>
                       <FormattedDate

@@ -1,7 +1,5 @@
 package pu.fmi.wordle.api;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
@@ -27,8 +25,6 @@ public class UserModelAssembler extends RepresentationModelAssemblerSupport<User
     var userModel = USER_TO_USER_MODEL.map(user);
     var permissions = userService.listUserPermissionsById(user.getId());
     userModel.setPermissions(permissions);
-    return userModel.add(linkTo(methodOn(GameApi.class).startNewGame()).withRel("startNewGame"),
-        linkTo(methodOn(GameApi.class).listLast10("myTop10")).withRel("myTop10"),
-        linkTo(methodOn(UserApi.class).showUser(user.getId())).withSelfRel());
+    return userModel;
   }
 }
