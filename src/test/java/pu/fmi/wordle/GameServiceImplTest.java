@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,15 +13,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pu.fmi.wordle.logic.GameServiceImpl;
 import pu.fmi.wordle.model.Game;
-import pu.fmi.wordle.model.GameRepo;
+import pu.fmi.wordle.model.GameRepository;
 import pu.fmi.wordle.model.WordRepo;
 
 @ExtendWith(MockitoExtension.class)
 class GameServiceImplTest {
 
-  @Mock GameRepo gameRepo;
-  @Mock WordRepo wordRepo;
-  @InjectMocks GameServiceImpl gameService;
+  @Mock
+  GameRepository gameRepo;
+
+  @Mock
+  WordRepo wordRepo;
+
+  @InjectMocks
+  GameServiceImpl gameService;
 
   @Test
   void testStartNewGame() {
@@ -40,7 +46,7 @@ class GameServiceImplTest {
     game.setId("test");
     game.setWord("мисля");
     game.setGuesses(new ArrayList<>(game.getMaxGuesses()));
-    when(gameRepo.get("test")).thenReturn(game);
+    when(gameRepo.findById("test")).thenReturn(Optional.of(game));
     when(wordRepo.exists(anyString())).thenReturn(true);
 
     game = gameService.makeGuess("test", "тегля");
